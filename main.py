@@ -9,7 +9,7 @@ import math
 import copy
 import random
 
-from board import Board, Edge
+from board import Board, DIRECTION_DOWNWARDS, DIRECTION_LEFTWARDS, DIRECTION_RIGHTWARDS, DIRECTION_UPWARDS, Edge
 from boardObjects import Marker
 
 
@@ -135,25 +135,51 @@ def main():
                         else:
                             # If the direction of the incursion was made in opposite of the direction of the edge
                             # Reverse the list and insert it
-                            printList(board.firstEdgeBuffer)
                             board.firstEdgeBuffer = reverseLinkedList(board.firstEdgeBuffer)
-                            printList(board.firstEdgeBuffer)
                             touchingEdge.addAfter(board.firstEdgeBuffer)
                         
                     else:
-                        # BUG 1: Fails when only one edge exists in the incursion.
-                        #   Replicate by: Moving upwards from starting position.
-                        # BUG 2: Incursion from right edge to top edge fails.
-
-                        # Otherwise it is an incursion to a different edge
-                        rightwards = board.firstEdgeBuffer.start[0] < edge.end[0]
-                        leftwards = not rightwards # If not traveling right, the action must be going left
-
-                        if rightwards:
+                        touchingEdgeDirection = touchingEdge.getDirection()
+                        startingEdgeDirection = startingIncurringEdge.getDirection()
+                        
+                        rightwardIncursion = board.firstEdgeBuffer.start[0] < edge.start[0]
+                        leftwardIncursion = board.firstEdgeBuffer.start[0] > edge.start[0]
+                        
+                        # Accept incursions from:
+                        #   - downwards to upwards (rightward horizontal incursion)
+                        #   - rightwards to leftwards (upward vertical incursion)
+                        #   - downwards to rightwards
+                        #   - downwards to downwards
+                        #   - rightwards to upwards
+                        #   - upwards to leftwards
+                        #   - leftwards to downwards
+                        #   - downwards to leftwards in a rightwards-incursion. This is specified so that the smaller area is taken during an incursion
+                        #   - leftwards to leftwards in a rightwards-incursion. Same reasoning as above
+                        #   - upwards to upwards. Same reasoning as above
+                        #   - rightwards to rightwards. Same reasoning as above
+                        if     startingEdgeDirection == DIRECTION_DOWNWARDS     and touchingEdgeDirection == DIRECTION_UPWARDS \
+                            or startingEdgeDirection == DIRECTION_RIGHTWARDS    and touchingEdgeDirection == DIRECTION_LEFTWARDS \
+                            or startingEdgeDirection == DIRECTION_DOWNWARDS     and touchingEdgeDirection == DIRECTION_DOWNWARDS  \
+                            or startingEdgeDirection == DIRECTION_DOWNWARDS     and touchingEdgeDirection == DIRECTION_RIGHTWARDS  \
+                            or startingEdgeDirection == DIRECTION_UPWARDS       and touchingEdgeDirection == DIRECTION_LEFTWARDS \
+                            or startingEdgeDirection == DIRECTION_RIGHTWARDS    and touchingEdgeDirection == DIRECTION_UPWARDS \
+                            or startingEdgeDirection == DIRECTION_LEFTWARDS     and touchingEdgeDirection == DIRECTION_DOWNWARDS  \
+                            or startingEdgeDirection == DIRECTION_DOWNWARDS     and touchingEdgeDirection == DIRECTION_LEFTWARDS    and leftwardIncursion\
+                            or startingEdgeDirection == DIRECTION_LEFTWARDS     and touchingEdgeDirection == DIRECTION_LEFTWARDS    and leftwardIncursion\
+                            or startingEdgeDirection == DIRECTION_UPWARDS       and touchingEdgeDirection == DIRECTION_UPWARDS      and rightwardIncursion\
+                            or startingEdgeDirection == DIRECTION_RIGHTWARDS    and touchingEdgeDirection == DIRECTION_RIGHTWARDS   and rightwardIncursion:
                             startingIncurringEdge.end = board.firstEdgeBuffer.start
                             startingIncurringEdge.next = board.firstEdgeBuffer
                             touchingEdge.start = edge.end
                             edge.next = touchingEdge
+                        
+                        # Accept incursions from:
+                        #   - leftwards to upwards
+                        #   - downwards to leftwards
+                        #   - rightwards to downwards
+                        #   - upwards to rightwards
+                        #   - upwards to downwards (horizontal incursion)
+                        #   - leftwards to rightwards (downward vertical incursion)
                         else:
                             oldFirstEdge = board.firstEdgeBuffer
                             board.firstEdgeBuffer = reverseLinkedList(board.firstEdgeBuffer)
@@ -162,7 +188,10 @@ def main():
                             touchingEdge.end = board.firstEdgeBuffer.start
                             touchingEdge.next = board.firstEdgeBuffer
                             oldFirstEdge.next = startingIncurringEdge
-
+                    
+                    # Update the firstEdge if it was removed during the incursion
+                    
+                    board.firstEdge = edge
                     # Insert the buffer into the edge
                     board.getMarker().setIsPushing(False)
                     board.firstEdgeBuffer = None
