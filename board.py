@@ -1,6 +1,7 @@
 from boardObjects import Marker, Qix, Sparx
 import pygame
 import copy
+import shapely
 
 # NOTE: USE.
 class Vertex():
@@ -12,6 +13,8 @@ class Edge():
     def __init__(self, start, end):
         self.start = start
         self.end = end
+        self.startPoint = shapely.geometry.Point(start[0], start[1], 0)
+        self.endPoint = shapely.geometry.Point(end[0], end[1], 0)
         self.next = None
         self.previous = None
 
