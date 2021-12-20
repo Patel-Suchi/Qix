@@ -20,3 +20,5 @@ Losing conditions:
 
 - Lose all 5 of your lives
 - Trapping a Sparx
+
+View the Demo: 
