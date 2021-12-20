@@ -3,7 +3,7 @@ Qix Game for CPS 406
 
 HOW TO PLAY:
 
-- User the arrow keys to move around edges
+- Use the arrow keys to move around edges
 - Hold space and push to uncaptured space to start and continue an incursion
 - Move into an orange edge to finish your incursion
 
